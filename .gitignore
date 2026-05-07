@@ -1,27 +1,67 @@
+# Logs
 *.log
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment
 .env
 .env.backup
 .env.production
+
+# IDEs & Editors
+.idea/
+.vscode/
+.zed/
+.cursor/
+.nova/
+
+# PHP / Laravel
+/vendor
+/node_modules
+
 .phpactor.json
 .phpunit.result.cache
-/.codex
-/.cursor/
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
+.phpunit.cache
+
 /auth.json
-/node_modules
+_ide_helper.php
+
+# Laravel Build Files
 /public/build
-/public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/public/fonts-manifest.dev.json
+
+# Laravel Storage
 /storage/*.key
 /storage/pail
-/vendor
-_ide_helper.php
+
+# Homestead
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Codex
+/.codex
+
+# Testing
+coverage/
+
+# Docker
+docker/data/
+docker/volumes/
+
+# Elasticsearch
+.elasticsearch/
+
+# Redis
+.redis/
+
+# Temporary Files
+*.tmp
+*.temp
+
+# Cache
+bootstrap/cache/*.php
+!bootstrap/cache/.gitignore
