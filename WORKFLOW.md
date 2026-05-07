@@ -1,135 +1,98 @@
-# MUVI OTT SaaS Search Assignment — Architecture & Implementation Roadmap
+# MUVI OTT SaaS Search Assignment — Workflow & Implementation Progress
 
-## 1. Goal of the Assignment
+## Project Goal
 
-Build a scalable OTT SaaS search system where:
+Build a scalable multi-tenant OTT search platform capable of handling:
 
-* Multiple OTT accounts (tenants) exist
-* Each account has 50,000+ contents
-* Users can search across all metadata fields
-* Search should be fast, scalable, and production-oriented
-* The project should demonstrate backend engineering quality, architecture thinking, and maintainability
+* 50K+ contents per tenant
+* Fast search responses
+* Production-oriented architecture
+* Async indexing pipelines
+* Scalable backend design
+* Optimized database querying
+* Search caching
+
+The assignment focuses heavily on:
+
+* Backend architecture
+* Scalability
+* Search engineering
+* Performance optimization
+* Clean implementation
+* Dockerized infrastructure
 
 ---
 
-# 2. Recommended Tech Stack
+# Current Tech Stack
 
 ## Backend
 
-* Laravel 11
-* PHP 8.3+
+* Laravel 13
+* PHP 8.3
 
 ## Database
 
-* PostgreSQL
+* PostgreSQL 16
 
-Why PostgreSQL:
+## Search Layer
 
-* Better indexing capabilities
-* JSONB support for metadata
-* Better scaling and search flexibility
-* Production-grade relational database
+* PostgreSQL Full Text Search (Current Phase)
+* Elasticsearch 8.x (Planned Next Phase)
 
-## Search Engine
+## Cache & Queue
 
-* Elasticsearch 8.x
+* Redis 7
+* Laravel Cache
+* Laravel Queue
 
-Why Elasticsearch:
+## Infrastructure
 
-* Designed for high-performance search
-* Multi-field search
-* Fuzzy search
-* Ranking/relevance support
-* Handles 100K+ records efficiently
-* Industry-standard for OTT/content platforms
-
-## Queue System
-
-* Redis + Laravel Queue
-
-Why:
-
-* Async indexing
-* Better scalability
-* Avoid blocking requests
-
-## Frontend
-
-* Blade OR minimal React/Next.js frontend
-
-Recommendation:
-Keep frontend simple.
-This assignment is backend/search focused.
-
-## Containerization
-
-* Docker + Docker Compose
-
-Services:
-
-* app
-* nginx
-* postgres
-* redis
-* elasticsearch
+* Docker
+* Docker Compose
+* Nginx
+* WSL2 Ubuntu 24.04
 
 ---
 
-# 3. High-Level Architecture
+# Architecture Overview
 
 ```text
-User Search Request
-        ↓
+Client Request
+      ↓
 Laravel API
-        ↓
-Elasticsearch Query
-        ↓
-Search Results
-        ↓
-Metadata fetched from DB (optional)
-        ↓
-Response
+      ↓
+Redis Cache Check
+      ↓
+PostgreSQL Full Text Search
+      ↓
+Eager Loaded Relations
+      ↓
+Paginated JSON Response
 ```
 
-Content creation/update flow:
+Future Elasticsearch Flow:
 
 ```text
-Content Created/Updated
-        ↓
-Laravel Event
-        ↓
-Queue Job
-        ↓
-Index into Elasticsearch
+Search Request
+      ↓
+Laravel API
+      ↓
+Elasticsearch Query
+      ↓
+Search Results
+      ↓
+Optional DB Hydration
+      ↓
+JSON Response
 ```
 
-This demonstrates:
-
-* Scalability
-* Event-driven architecture
-* Async processing
-* Reliability
-
 ---
 
-# 4. Multi-Tenant SaaS Design
+# Multi-Tenant Design
 
-The assignment explicitly mentions:
+The system is designed as a SaaS OTT platform.
 
-> 2 accounts with 50K+ content each
-
-This means:
-
-* Tenant isolation is important
-* Queries must be scoped by account
-
----
-
-## Recommended Tenant Strategy
-
-### Single DB + tenant_id
-
-Every content row contains:
+Each content row belongs to a tenant.
 
 ```text
 tenant_id
@@ -137,14 +100,14 @@ tenant_id
 
 Benefits:
 
-* Simpler implementation
-* Easier scaling
-* Easier querying
-* Production-friendly
+* Easy tenant isolation
+* Scalable querying
+* Simple architecture
+* Production-friendly design
 
 ---
 
-# 5. Database Schema
+# Database Schema
 
 ## tenants
 
@@ -158,26 +121,30 @@ Benefits:
 
 ## contents
 
-| Column       | Type      |
-| ------------ | --------- |
-| id           | bigint    |
-| tenant_id    | bigint    |
-| title        | string    |
-| slug         | string    |
-| description  | text      |
-| poster_url   | string    |
-| release_year | integer   |
-| language     | string    |
-| genre        | string    |
-| rating       | decimal   |
-| metadata     | jsonb     |
-| created_at   | timestamp |
+| Column        | Type      |
+| ------------- | --------- |
+| id            | bigint    |
+| tenant_id     | bigint    |
+| title         | string    |
+| slug          | string    |
+| description   | text      |
+| content_type  | string    |
+| release_year  | integer   |
+| language      | string    |
+| genres        | jsonb     |
+| poster_url    | string    |
+| imdb_rating   | decimal   |
+| search_text   | text      |
+| search_vector | tsvector  |
+| status        | string    |
+| created_at    | timestamp |
 
 Indexes:
 
 * tenant_id
-* slug
+* status
 * release_year
+* search_vector (GIN)
 
 ---
 
@@ -187,6 +154,7 @@ Indexes:
 | ------ | ------ |
 | id     | bigint |
 | name   | string |
+| slug   | string |
 
 ---
 
@@ -204,349 +172,279 @@ Indexes:
 
 ---
 
-# 6. Why NOT Store Everything in SQL Search?
+# Current Search Implementation
 
-Avoid:
+## PostgreSQL Full Text Search
+
+Current implementation uses:
+
+```sql
+plainto_tsquery
+```
+
+and:
+
+```sql
+ts_rank
+```
+
+for:
+
+* keyword matching
+* ranking
+* relevance sorting
+
+Search query example:
+
+```sql
+search_vector @@ plainto_tsquery('english', ?)
+```
+
+Ranking:
+
+```sql
+ts_rank(search_vector, plainto_tsquery('english', ?))
+```
+
+---
+
+# Current Search Features
+
+Implemented:
+
+* Full text search
+* Relevance ranking
+* Multi-tenant filtering
+* Pagination
+* Redis caching
+* Eager loading
+* Search filters
+* Optimized JSON response
+* Search vector indexing
+
+---
+
+# Search Filters
+
+Implemented filters:
+
+* content_type
+* release_year
+* language
+* minimum rating
+
+Example:
+
+```text
+/search?q=action&tenant_id=1&content_type=movie
+```
+
+---
+
+# Redis Cache Layer
+
+Search responses are cached using Redis.
+
+Current implementation:
+
+```php
+Cache::remember(...)
+```
+
+Benefits:
+
+* Reduced DB load
+* Faster repeated searches
+* Lower query latency
+* Better scalability
+
+Observed performance:
+
+| Scenario       | Response Time |
+| -------------- | ------------- |
+| Cold request   | ~500ms–1s     |
+| Cached request | ~80ms         |
+
+---
+
+# Performance Optimization Work
+
+## Implemented
+
+### 1. PostgreSQL Full Text Search
+
+Avoided:
 
 ```sql
 LIKE '%keyword%'
 ```
 
-Reasons:
+Reason:
 
-* Slow at scale
-* Poor ranking
-* Bad fuzzy search
-* Doesn't scale well for 100K+ records
-
-Using Elasticsearch shows:
-
-* Senior-level thinking
-* Real-world OTT architecture
+* Poor scalability
+* Slow scans
+* No ranking
+* Inefficient indexing
 
 ---
 
-# 7. Elasticsearch Design
+### 2. GIN Indexing
 
-## Index Structure
+Implemented:
 
-Recommended index:
+```sql
+CREATE INDEX contents_search_vector_idx
+ON contents
+USING GIN(search_vector)
+```
+
+---
+
+### 3. Pagination
+
+Implemented:
 
 ```text
-ott_contents
+?page=1
 ```
 
-Each document:
-
-```json
-{
-  "id": 1,
-  "tenant_id": 1,
-  "title": "Avengers",
-  "description": "Marvel movie",
-  "casts": ["Robert Downey Jr"],
-  "genre": "Action",
-  "language": "English"
-}
-```
+Avoids loading large datasets.
 
 ---
 
-# 8. Search Query Strategy
+### 4. Eager Loading
 
-Use:
-
-## multi_match query
-
-Search across:
-
-* title
-* description
-* casts
-* genre
-* metadata
-
-Example:
-
-```json
-{
-  "query": {
-    "bool": {
-      "must": [
-        {
-          "multi_match": {
-            "query": "avengers",
-            "fields": [
-              "title^3",
-              "casts^2",
-              "description",
-              "genre"
-            ],
-            "fuzziness": "AUTO"
-          }
-        }
-      ],
-      "filter": [
-        {
-          "term": {
-            "tenant_id": 1
-          }
-        }
-      ]
-    }
-  }
-}
-```
-
----
-
-# 9. Performance Optimizations
-
-## MUST IMPLEMENT
-
-### 1. Elasticsearch Indexing
-
-Search should never hit SQL directly.
-
----
-
-### 2. Pagination
-
-API:
-
-```text
-/api/search?page=1&limit=20
-```
-
-Never return all results.
-
----
-
-### 3. Async Indexing
-
-When content updates:
-
-* Dispatch queue job
-* Update ES asynchronously
-
-Avoid blocking writes.
-
----
-
-### 4. Redis Queue
-
-Use Redis for:
-
-* Queue workers
-* Better reliability
-* Faster processing
-
----
-
-### 5. DB Indexes
-
-Indexes on:
-
-* tenant_id
-* slug
-* release_year
-
----
-
-### 6. Avoid N+1 Queries
-
-Always eager load:
+Implemented:
 
 ```php
-Content::with('casts')
+->with('actors:id,name')
 ```
 
----
-
-### 7. Response Optimization
-
-Return only required fields.
-
-Avoid:
-
-* huge payloads
-* unnecessary metadata
+Avoids N+1 query issues.
 
 ---
 
-# 10. Reliability Considerations
+### 5. Response Optimization
 
-## Queue Retry Strategy
+Only required fields are returned.
 
-Configure:
-
-* retries
-* timeout
-* failed_jobs table
-
-This demonstrates:
-
-* production thinking
-* resilience
+Reduces payload size.
 
 ---
 
-## Logging
+### 6. Redis Search Cache
 
-Use Laravel logging for:
-
-* indexing failures
-* search failures
-
----
-
-## Graceful Error Handling
-
-Return:
-
-```json
-{
-  "message": "Search failed"
-}
-```
-
-Avoid exposing internal errors.
-
----
-
-# 11. Seeder Strategy (IMPORTANT)
-
-The assignment explicitly asks:
-
-> 50K+ contents per account
-
----
-
-## Recommended Approach
-
-Create:
-
-### TenantSeeder
-
-Creates:
-
-* Account A
-* Account B
-
-### ContentSeeder
-
-Generates:
-
-* 50,000 contents per tenant
-
-Use:
-
-* Faker
-* Chunk inserts
-
-Avoid inserting one-by-one.
-
----
-
-## Seeder Optimization
-
-Use:
-
-```php
-Content::insert($batch)
-```
-
-Batch size:
+Implemented cache key strategy:
 
 ```text
-1000 rows
+search:tenant:{id}:q:{query}
 ```
 
-This massively improves performance.
+Supports filter-aware caching.
 
 ---
 
-# 12. APIs to Build
+# Important WSL2 Performance Discovery
 
-## Search API
+## Initial Problem
+
+Docker + Laravel performance was extremely slow.
+
+Observed:
+
+* 5–7 second requests
+* Very slow artisan commands
+* Slow container filesystem operations
+
+---
+
+## Root Cause
+
+Project was located on Windows filesystem:
 
 ```text
-GET /api/tenants/{tenant}/search?q=avengers
+/mnt/d/
 ```
 
-Response:
+Docker bind mounts from Windows NTFS into Linux containers caused major filesystem overhead.
 
-```json
-{
-  "data": [
-    {
-      "title": "Avengers",
-      "poster": "...",
-      "casts": ["Robert Downey Jr"],
-      "genre": "Action"
-    }
-  ]
-}
+---
+
+## Solution
+
+Moved project into native WSL2 Linux filesystem:
+
+```text
+~/projects/muvi_ott_search
 ```
 
 ---
 
-## Optional APIs
+## Result
 
-### Content Details
+Performance improved dramatically.
 
-```text
-GET /api/contents/{id}
-```
+Before:
 
-### Reindex API
+| Operation     | Time |
+| ------------- | ---- |
+| artisan about | 5–7s |
+| API response  | 2–7s |
 
-```text
-POST /api/reindex
-```
+After:
 
-Good bonus feature.
-
----
-
-# 13. Suggested Folder Structure
-
-```text
-app/
- ├── Actions/
- ├── DTOs/
- ├── Services/
- ├── Repositories/
- ├── Jobs/
- ├── Events/
- ├── Listeners/
- ├── Http/
-```
-
-This demonstrates clean architecture.
+| Operation           | Time  |
+| ------------------- | ----- |
+| artisan about       | ~0.8s |
+| Cached API response | ~85ms |
 
 ---
 
-# 14. Recommended Packages
+# Recommended Development Workflow
 
-## Elasticsearch
+## Start Ubuntu WSL
 
-Recommended:
-
-```text
-elastic/elasticsearch
+```bash
+wsl
 ```
-
-OR Laravel Scout + Elasticsearch driver.
-
-Recommendation:
-Use direct Elasticsearch client for better control.
 
 ---
 
-# 15. Docker Compose Setup
+## Open Project
 
-Include:
+```bash
+cd ~/projects/muvi_ott_search
+```
+
+---
+
+## Start Docker
+
+```bash
+docker compose up -d
+```
+
+---
+
+## Open VS Code
+
+```bash
+code .
+```
+
+This ensures:
+
+* Native Linux filesystem performance
+* Fast Docker bind mounts
+* Faster Composer
+* Faster NPM
+* Better Laravel performance
+
+---
+
+# Docker Services
+
+Current services:
 
 ```yaml
 services:
@@ -557,91 +455,212 @@ services:
   elasticsearch:
 ```
 
-This significantly improves professionalism.
-
 ---
 
-# 16. README Structure (VERY IMPORTANT)
+# Seeder Strategy
 
-## Sections
+Implemented scalable seeders:
 
-### 1. Project Overview
+* TenantSeeder
+* ContentSeeder
+* CastSeeder
+* ContentCastSeeder
 
-Explain:
+Seed volume:
 
-* multi-tenant OTT search system
-* scalable architecture
+* 50K+ contents per tenant
 
----
+Optimization:
 
-### 2. Tech Stack
-
-Explain why:
-
-* Laravel
-* PostgreSQL
-* Elasticsearch
-* Redis
-
----
-
-### 3. Setup Instructions
-
-```bash
-cp .env.example .env
-composer install
-php artisan key:generate
-php artisan migrate --seed
-php artisan queue:work
+```php
+Model::insert($batch)
 ```
 
-Docker setup:
+Batch inserts improve seeding performance significantly.
 
-```bash
-docker-compose up -d
+---
+
+# API Endpoints
+
+## Search API
+
+```text
+GET /search?q=action&tenant_id=1
 ```
 
 ---
 
-### 4. Seeder Details
+## Search With Filters
 
-Mention:
-
-* 50K records per tenant
-* generated via optimized batch seeding
-
----
-
-### 5. Architecture Decisions
-
-Explain:
-
-* why Elasticsearch
-* why async indexing
-* why queues
-* tenant isolation strategy
+```text
+GET /search?q=action&tenant_id=1&content_type=movie
+```
 
 ---
 
-### 6. Performance Considerations
+# Current Folder Structure
 
-Mention:
-
-* indexing
-* pagination
-* eager loading
-* async processing
+```text
+app/
+ ├── Console/
+ ├── Http/
+ │    ├── Controllers/
+ │    ├── Requests/
+ │    └── Resources/
+ ├── Models/
+ ├── Services/
+```
 
 ---
 
-### 7. Future Improvements
+# Current Laravel Components
 
-Examples:
+Implemented:
 
+* SearchController
+* SearchRequest
+* SearchService
+* ContentResource
+* GenerateSearchVectors command
+
+---
+
+# Current Status
+
+## Completed
+
+* Docker infrastructure
+* PostgreSQL schema
+* Seeder system
+* Full text search
+* Search ranking
+* Multi-tenant filtering
+* Redis caching
+* Search filters
+* Pagination
+* Eager loading
+* Search vector indexing
+* WSL2 optimization
+* Production-like local environment
+
+---
+
+# Next Planned Phase
+
+## Elasticsearch Integration
+
+Planned:
+
+* Elasticsearch indexing
+* Async indexing jobs
+* Queue workers
+* Event-driven indexing
+* Fuzzy search
+* Multi-field weighted search
+* Search suggestions
+* Reindex commands
+
+---
+
+# Future Improvements
+
+Planned improvements:
+
+* Autocomplete
+* Search analytics
+* Trending searches
+* Popular search cache
+* Search suggestions
+* Elasticsearch synonyms
+* Queue retry handling
+* Circuit breaker strategy
+* API rate limiting
+* Observability & metrics
+
+---
+
+# Key Engineering Decisions
+
+## Why PostgreSQL?
+
+* Strong indexing support
+* JSONB support
+* Full text search support
+* Production-grade reliability
+
+---
+
+## Why Redis?
+
+* Fast caching
+* Queue support
+* Reduces DB load
+* Better scalability
+
+---
+
+## Why WSL2 Linux Filesystem?
+
+* Native Linux performance
+* Faster Docker bind mounts
+* Lower Laravel filesystem overhead
+* Better development experience
+
+---
+
+## Why Full Text Search?
+
+Compared to:
+
+```sql
+LIKE '%query%'
+```
+
+Benefits:
+
+* Better performance
+* Ranking support
+* Scalable indexing
+* Production-ready search
+
+---
+
+## Why Elasticsearch Later?
+
+PostgreSQL FTS is excellent for:
+
+* initial implementation
+* moderate scale
+* assignment MVP
+
+Elasticsearch is better for:
+
+* fuzzy search
 * autocomplete
-* trending searches
+* typo tolerance
+* large-scale distributed search
+* advanced ranking
 * analytics
-* search suggestions
-* cache layer
 
 ---
+
+# Final Notes
+
+This implementation focuses heavily on:
+
+* backend engineering quality
+* scalability
+* production architecture
+* search optimization
+* maintainability
+* performance engineering
+* infrastructure awareness
+
+The current system is now:
+
+* production-oriented
+* scalable
+* cache-optimized
+* Dockerized
+* multi-tenant ready
+* extensible toward Elasticsearch

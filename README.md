@@ -1,58 +1,655 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MUVI OTT SaaS Search Module
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A scalable multi-tenant OTT search platform built using Laravel, PostgreSQL, Redis, Docker, and Elasticsearch-ready architecture.
 
-## About Laravel
+This project demonstrates:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* Production-oriented backend architecture
+* Scalable search system design
+* Multi-tenant SaaS implementation
+* Full text search optimization
+* Redis caching
+* Dockerized infrastructure
+* Queue-ready architecture
+* Performance-focused engineering
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Features
 
-## Learning Laravel
+## Implemented
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* Multi-tenant OTT content system
+* PostgreSQL Full Text Search
+* Redis cache layer
+* Search ranking using `ts_rank`
+* Search vector indexing using GIN indexes
+* Filter-based search
+* Pagination
+* Eager loading optimization
+* Dockerized environment
+* Large-scale seeders (50K+ records)
+* WSL2 optimized Linux development workflow
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+# Tech Stack
 
-## Agentic Development
+| Layer               | Technology                  |
+| ------------------- | --------------------------- |
+| Backend             | Laravel 13                  |
+| Language            | PHP 8.3                     |
+| Database            | PostgreSQL 16               |
+| Cache               | Redis 7                     |
+| Search              | PostgreSQL Full Text Search |
+| Infrastructure      | Docker + Docker Compose     |
+| Web Server          | Nginx                       |
+| Future Search Layer | Elasticsearch 8.x           |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
-```bash
-composer require laravel/boost --dev
+# System Architecture
 
-php artisan boost:install
+```text
+Client Request
+      ↓
+Laravel API
+      ↓
+Redis Cache Check
+      ↓
+PostgreSQL Full Text Search
+      ↓
+Paginated Response
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Future Elasticsearch Architecture:
 
-## Contributing
+```text
+Client Request
+      ↓
+Laravel API
+      ↓
+Elasticsearch Query
+      ↓
+Search Results
+      ↓
+JSON Response
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+# Project Structure
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```text
+app/
+ ├── Console/
+ ├── Http/
+ │    ├── Controllers/
+ │    ├── Requests/
+ │    └── Resources/
+ ├── Models/
+ ├── Services/
+ ├── Providers/
+ └── Jobs/
 
-## Security Vulnerabilities
+config/
+database/
+routes/
+docker/
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+# Requirements
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Recommended Environment
+
+* Windows + WSL2 Ubuntu 24.04
+* Docker Desktop
+* Docker Compose
+
+OR
+
+* Native Linux
+
+---
+
+# Important Performance Note
+
+This project is optimized for Linux filesystem performance.
+
+For best performance:
+
+* Use WSL2 Ubuntu
+* Store project inside Linux filesystem
+
+Recommended path:
+
+```bash
+~/projects/muvi_ott_search
+```
+
+Avoid running Docker bind mounts from:
+
+```text
+D:\ or C:\ drives
+```
+
+because Windows NTFS bind mounts cause major Laravel filesystem latency.
+
+---
+
+# Installation Guide
+
+## 1. Clone Project
+
+```bash
+git clone <repository-url>
+```
+
+---
+
+## 2. Open WSL Ubuntu
+
+```bash
+wsl
+```
+
+---
+
+## 3. Move Project Into Linux Filesystem
+
+Recommended:
+
+```bash
+mkdir -p ~/projects
+cd ~/projects
+```
+
+If project exists on Windows drive:
+
+```bash
+cp -r /mnt/d/muvi_ott_search .
+```
+
+---
+
+## 4. Open Project
+
+```bash
+cd ~/projects/muvi_ott_search
+```
+
+---
+
+# Docker Setup
+
+## Start Containers
+
+```bash
+docker compose up -d
+```
+
+---
+
+## Verify Containers
+
+```bash
+docker compose ps
+```
+
+Expected services:
+
+```text
+app
+nginx
+postgres
+redis
+elasticsearch
+```
+
+---
+
+# Laravel Setup
+
+## Install Dependencies
+
+```bash
+docker compose exec app composer install
+```
+
+---
+
+## Create Environment File
+
+```bash
+cp .env.example .env
+```
+
+---
+
+## Generate App Key
+
+```bash
+docker compose exec app php artisan key:generate
+```
+
+---
+
+# Database Setup
+
+## Run Migrations
+
+```bash
+docker compose exec app php artisan migrate
+```
+
+---
+
+## Run Seeders
+
+```bash
+docker compose exec app php artisan db:seed
+```
+
+This generates:
+
+* Multiple tenants
+* 50K+ OTT contents
+* Cast relationships
+* Search-ready data
+
+---
+
+# Generate Search Vectors
+
+After seeding, generate PostgreSQL search vectors:
+
+```bash
+docker compose exec app php artisan search:generate-vectors
+```
+
+This populates:
+
+```text
+search_vector
+```
+
+for optimized full text search.
+
+---
+
+# Redis Cache Setup
+
+Current cache store:
+
+```env
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+```
+
+Redis database usage:
+
+| Purpose | DB |
+| ------- | -- |
+| Default | 0  |
+| Cache   | 1  |
+
+---
+
+# Running the Project
+
+## Start Containers
+
+```bash
+docker compose up -d
+```
+
+---
+
+## Open API
+
+```text
+http://localhost:8000
+```
+
+---
+
+# Search API
+
+## Basic Search
+
+```http
+GET /search?q=action&tenant_id=1
+```
+
+Example:
+
+```text
+http://localhost:8000/search?q=action&tenant_id=1
+```
+
+---
+
+# Search Filters
+
+## Content Type
+
+```text
+&content_type=movie
+```
+
+---
+
+## Release Year
+
+```text
+&release_year=2020
+```
+
+---
+
+## Language
+
+```text
+&language=english
+```
+
+---
+
+## Minimum Rating
+
+```text
+&min_rating=8
+```
+
+---
+
+# Full Search Example
+
+```text
+http://localhost:8000/search?q=action&tenant_id=1&content_type=movie&min_rating=8
+```
+
+---
+
+# Search Implementation Details
+
+## PostgreSQL Full Text Search
+
+Search uses:
+
+```sql
+plainto_tsquery
+```
+
+and:
+
+```sql
+ts_rank
+```
+
+for:
+
+* keyword matching
+* relevance ranking
+* scalable querying
+
+---
+
+# Database Optimization
+
+Implemented indexes:
+
+```sql
+GIN(search_vector)
+```
+
+Additional indexes:
+
+* tenant_id
+* status
+* release_year
+
+---
+
+# Cache Strategy
+
+Search responses are cached using Redis.
+
+Benefits:
+
+* Faster repeated searches
+* Lower DB load
+* Reduced latency
+* Better scalability
+
+Example cache key:
+
+```text
+search:tenant:1:q:action
+```
+
+---
+
+# Checking Redis Cache
+
+## Open Redis CLI
+
+```bash
+docker compose exec redis redis-cli
+```
+
+---
+
+## Select Cache Database
+
+```bash
+SELECT 1
+```
+
+---
+
+## View Cache Keys
+
+```bash
+KEYS *
+```
+
+Expected output:
+
+```text
+laravel-database-laravel-cache-search:tenant:1:q:action
+```
+
+---
+
+# Performance Benchmarks
+
+## Windows NTFS Bind Mounts
+
+Observed:
+
+| Operation        | Time |
+| ---------------- | ---- |
+| API request      | 2–7s |
+| Artisan commands | 5–7s |
+
+---
+
+## WSL2 Native Linux Filesystem
+
+Observed:
+
+| Operation          | Time  |
+| ------------------ | ----- |
+| Cached API request | ~85ms |
+| Artisan commands   | ~0.8s |
+
+---
+
+# Queue System
+
+Current queue driver:
+
+```env
+QUEUE_CONNECTION=redis
+```
+
+Future queue usage:
+
+* Elasticsearch indexing
+* Async processing
+* Search synchronization
+
+---
+
+# Elasticsearch (Planned Phase)
+
+Future improvements include:
+
+* Elasticsearch indexing
+* Fuzzy search
+* Multi-field weighted search
+* Autocomplete
+* Search suggestions
+* Async indexing jobs
+
+---
+
+# Development Workflow
+
+## Recommended Daily Workflow
+
+### Open Ubuntu
+
+```bash
+wsl
+```
+
+---
+
+### Open Project
+
+```bash
+cd ~/projects/muvi_ott_search
+```
+
+---
+
+### Start Docker
+
+```bash
+docker compose up -d
+```
+
+---
+
+### Open VS Code
+
+```bash
+code .
+```
+
+---
+
+# Useful Commands
+
+## Stop Containers
+
+```bash
+docker compose down
+```
+
+---
+
+## Restart Containers
+
+```bash
+docker compose restart
+```
+
+---
+
+## View Logs
+
+```bash
+docker compose logs -f
+```
+
+---
+
+## Laravel Optimize Clear
+
+```bash
+docker compose exec app php artisan optimize:clear
+```
+
+---
+
+## Open Laravel Tinker
+
+```bash
+docker compose exec app php artisan tinker
+```
+
+---
+
+# Future Improvements
+
+Planned improvements:
+
+* Elasticsearch integration
+* Autocomplete
+* Search analytics
+* Trending searches
+* Popular searches
+* Query suggestions
+* Async indexing workers
+* Search metrics
+* Rate limiting
+* Observability dashboards
+
+---
+
+# Engineering Focus
+
+This assignment focuses heavily on:
+
+* Backend engineering quality
+* Scalable architecture
+* Search engineering
+* Multi-tenant SaaS design
+* Performance optimization
+* Infrastructure awareness
+* Production-oriented thinking
+
+---
+
+# Current Status
+
+## Completed
+
+* Docker infrastructure
+* PostgreSQL schema
+* Large-scale seeders
+* PostgreSQL full text search
+* Search ranking
+* Redis caching
+* Pagination
+* Search filters
+* Eager loading
+* WSL2 optimization
+* Production-like local environment
+
+---
+
+# Author Notes
+
+The system is intentionally designed to demonstrate:
+
+* scalable backend engineering
+* production architecture
+* search optimization strategies
+* real-world SaaS design patterns
+* infrastructure-aware development workflow

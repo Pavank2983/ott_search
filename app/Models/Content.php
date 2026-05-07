@@ -38,11 +38,13 @@ class Content extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function casts(): BelongsToMany
+    public function actors(): BelongsToMany
     {
         return $this->belongsToMany(
             CastModel::class,
-            'content_cast'
+            'content_cast',
+            'content_id',
+            'cast_id'
         );
     }
 }
