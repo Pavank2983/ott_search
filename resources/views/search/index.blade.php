@@ -1,275 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTT Search</title>
+
+    <title>
+        MUVI OTT Search Platform
+    </title>
+
+    <meta name="description"
+        content="Scalable OTT SaaS search platform powered by Laravel, Elasticsearch, Redis queues, and PostgreSQL.">
+
+    <meta name="keywords" content="OTT Search, Elasticsearch, Laravel, Redis, PostgreSQL, Streaming Platform">
+
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="MUVI OTT Search Platform">
+
+    <meta property="og:description" content="Production-grade OTT SaaS search architecture using Elasticsearch.">
+
+    <meta property="og:type" content="website">
+
+    <meta name="theme-color" content="#020617">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 </head>
 
-<body class="min-h-screen">
+<body class="bg-slate-950 text-white antialiased">
 
-    <div class="max-w-7xl mx-auto px-6 py-10">
+    <main class="min-h-screen">
 
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2">
-                OTT Search Platform
-            </h1>
+        <!-- Hero -->
+        <section class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
 
-            <p class="text-slate-400">
-                Elasticsearch Powered Content Discovery
-            </p>
-        </div>
+            <div class="max-w-7xl mx-auto px-6 py-10">
 
-        <!-- Search + Filters -->
-        <div class="bg-slate-800 rounded-2xl p-6 mb-8">
+                <div class="max-w-4xl">
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <h1 class="text-4xl lg:text-5xl font-black leading-tight tracking-tight">
+                        MUVI OTT Search Platform
+                    </h1>
 
-                <input
-                    id="searchInput"
-                    type="text"
-                    placeholder="Search movies, series..."
-                    class="md:col-span-2 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 outline-none"
-                >
+                    <p class="mt-6 text-slate-400 text-lg leading-relaxed max-w-3xl">
+                        Production-grade multi-tenant OTT search platform powered by
+                        Laravel, Elasticsearch, Redis queues, PostgreSQL, and Dockerized infrastructure.
+                    </p>
 
-                <select
-                    id="contentType"
-                    class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3"
-                >
-                    <option value="">All Types</option>
-                    <option value="movie">Movie</option>
-                    <option value="series">Series</option>
-                    <option value="documentary">Documentary</option>
-                </select>
-
-                <select
-                    id="minRating"
-                    class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3"
-                >
-                    <option value="">Min Rating</option>
-                    <option value="5">5+</option>
-                    <option value="6">6+</option>
-                    <option value="7">7+</option>
-                    <option value="8">8+</option>
-                </select>
+                </div>
 
             </div>
-        </div>
 
-        <!-- Loading -->
-        <div
-            id="loading"
-            class="hidden justify-center py-10"
-        >
-            <div class="loader"></div>
-        </div>
+        </section>
 
-        <!-- Empty -->
-        <div
-            id="emptyState"
-            class="hidden text-center py-16 text-slate-400"
-        >
-            No contents found.
-        </div>
+        <!-- Sticky Search -->
+        <section id="searchSection"
+            class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur-xl">
+
+            <div class="max-w-7xl mx-auto px-6 py-5">
+
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl">
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+                        <!-- Search -->
+                        <div class="lg:col-span-5">
+
+                            <label class="block text-sm text-slate-400 mb-2">
+                                Search Content
+                            </label>
+
+                            <div class="relative">
+
+                                <!-- Search Icon -->
+                                <svg class="absolute left-4 top-5 w-5 h-5 text-slate-500 z-10" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+
+                                <!-- Search Input -->
+                                <input id="searchInput" type="text" autocomplete="off"
+                                    placeholder="Search movies, series..."
+                                    class="
+                                    w-full
+                                    bg-slate-950
+                                    border
+                                    border-slate-700
+                                    rounded-2xl
+                                    pl-12
+                                    pr-5
+                                    py-4
+                                    outline-none
+                                    focus:border-indigo-500
+                                    transition
+                                ">
+
+                                <!-- Suggestions -->
+                                <div id="searchSuggestions"
+                                    class="
+                                    hidden
+                                    absolute
+                                    top-full
+                                    left-0
+                                    right-0
+                                    mt-2
+                                    bg-slate-900
+                                    border
+                                    border-slate-800
+                                    rounded-2xl
+                                    overflow-hidden
+                                    shadow-2xl
+                                    z-50
+                                    max-h-[420px]
+                                    overflow-y-auto
+                                ">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Tenant -->
+                        <div class="lg:col-span-2">
+
+                            <label class="block text-sm text-slate-400 mb-2">
+                                Platform
+                            </label>
+
+                            <select id="tenantId"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 transition">
+
+                                <option value="">
+                                    Loading Platforms...
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Type -->
+                        <div class="lg:col-span-2">
+
+                            <label class="block text-sm text-slate-400 mb-2">
+                                Content Type
+                            </label>
+
+                            <select id="contentType"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 transition">
+
+                                <option value="">
+                                    All Types
+                                </option>
+
+                                <option value="movie">
+                                    Movie
+                                </option>
+
+                                <option value="series">
+                                    Series
+                                </option>
+
+                                <option value="documentary">
+                                    Documentary
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="lg:col-span-2">
+
+                            <label class="block text-sm text-slate-400 mb-2">
+                                Minimum Rating
+                            </label>
+
+                            <select id="minRating"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-2xl px-5 py-4 outline-none focus:border-indigo-500 transition">
+
+                                <option value="">
+                                    Any Rating
+                                </option>
+
+                                <option value="5">
+                                    5+
+                                </option>
+
+                                <option value="6">
+                                    6+
+                                </option>
+
+                                <option value="7">
+                                    7+
+                                </option>
+
+                                <option value="8">
+                                    8+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Active Filters -->
+                    <div id="activeFilters" class="hidden flex flex-wrap gap-2 mt-5"></div>
+
+                </div>
+
+            </div>
+
+        </section>
 
         <!-- Results -->
-        <div
-            id="results"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        ></div>
+        <section class="max-w-[1800px] mx-auto px-6 pt-8 pb-40">
 
-        <!-- Pagination -->
-        <div
-            id="pagination"
-            class="flex justify-center items-center gap-4 mt-10"
-        ></div>
+            <!-- Loading -->
+            <div id="loading" class="hidden">
 
-    </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 
-    <script>
+                    @for ($i = 0; $i < 10; $i++)
+                        <div class="animate-pulse rounded-3xl overflow-hidden border border-slate-800 bg-slate-900">
 
-        let currentPage = 1;
+                            <div class="aspect-[2/3] bg-slate-800"></div>
 
-        const searchInput = document.getElementById('searchInput');
-        const contentType = document.getElementById('contentType');
-        const minRating = document.getElementById('minRating');
+                            <div class="p-4">
 
-        const resultsContainer = document.getElementById('results');
-        const paginationContainer = document.getElementById('pagination');
+                                <div class="h-6 bg-slate-800 rounded mb-4"></div>
 
-        const loading = document.getElementById('loading');
-        const emptyState = document.getElementById('emptyState');
+                                <div class="h-4 bg-slate-800 rounded mb-2"></div>
 
-        let debounceTimer;
+                                <div class="h-4 bg-slate-800 rounded w-2/3"></div>
 
-        async function fetchContents(page = 1) {
-
-            currentPage = page;
-
-            loading.classList.remove('hidden');
-            loading.classList.add('flex');
-
-            emptyState.classList.add('hidden');
-
-            resultsContainer.innerHTML = '';
-            paginationContainer.innerHTML = '';
-
-            const params = new URLSearchParams({
-                q: searchInput.value,
-                tenant_id: 1,
-                page: page,
-            });
-
-            if (contentType.value) {
-                params.append('content_type', contentType.value);
-            }
-
-            if (minRating.value) {
-                params.append('min_rating', minRating.value);
-            }
-
-            const response = await fetch(
-                `/api/search?${params.toString()}`
-            );
-
-            const data = await response.json();
-
-            loading.classList.add('hidden');
-
-            if (!data.data.length) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
-
-            renderContents(data.data);
-
-            renderPagination(
-                data.current_page,
-                data.last_page
-            );
-        }
-
-        function renderContents(contents) {
-
-            contents.forEach(content => {
-
-                const card = document.createElement('div');
-
-                card.className =
-                    'bg-slate-800 rounded-2xl overflow-hidden border border-slate-700';
-
-                card.innerHTML = `
-                    <div class="h-52 bg-slate-900 flex items-center justify-center">
-                        <span class="text-slate-500 text-sm">
-                            No Poster
-                        </span>
-                    </div>
-
-                    <div class="p-5">
-
-                        <div class="flex items-center justify-between mb-3">
-
-                            <h2 class="text-xl font-semibold">
-                                ${content.title}
-                            </h2>
-
-                            <span class="text-yellow-400 font-bold">
-                                ⭐ ${content.imdb_rating ?? 'N/A'}
-                            </span>
+                            </div>
 
                         </div>
+                    @endfor
 
-                        <p class="text-slate-400 text-sm mb-4 line-clamp-3">
-                            ${content.description ?? 'No description'}
-                        </p>
+                </div>
 
-                        <div class="flex flex-wrap gap-2">
+            </div>
 
-                            <span class="bg-slate-700 px-3 py-1 rounded-full text-xs">
-                                ${content.content_type}
-                            </span>
+            <!-- Empty -->
+            <div id="emptyState" class="hidden text-center py-28">
 
-                            <span class="bg-slate-700 px-3 py-1 rounded-full text-xs">
-                                ${content.release_year ?? 'N/A'}
-                            </span>
+                <div class="max-w-md mx-auto">
 
-                        </div>
-
+                    <div class="text-7xl mb-6">
+                        🎬
                     </div>
-                `;
 
-                resultsContainer.appendChild(card);
-            });
-        }
+                    <h2 class="text-3xl font-bold mb-3">
+                        No Contents Found
+                    </h2>
 
-        function renderPagination(currentPage, lastPage) {
+                    <p class="text-slate-400">
+                        Try different search keywords or filters.
+                    </p>
 
-            if (lastPage <= 1) {
-                return;
-            }
+                </div>
 
-            if (currentPage > 1) {
+            </div>
 
-                const prevButton = document.createElement('button');
+            <!-- Meta -->
+            <div id="resultsMeta" class="hidden items-center justify-between mb-6 text-sm text-slate-400">
 
-                prevButton.innerText = 'Previous';
+                <div class="flex items-center gap-3">
 
-                prevButton.className =
-                    'bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg';
+                    <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
 
-                prevButton.onclick = () => fetchContents(currentPage - 1);
+                    <p id="resultsCount"></p>
 
-                paginationContainer.appendChild(prevButton);
-            }
+                </div>
 
-            const pageText = document.createElement('span');
+                <p>
+                    Elasticsearch Cursor Search
+                </p>
 
-            pageText.className = 'text-slate-300';
+            </div>
 
-            pageText.innerText =
-                `Page ${currentPage} of ${lastPage}`;
+            <!-- Grid -->
+            <div id="results"
+                class="
+                    grid
+                    grid-cols-2
+                    sm:grid-cols-3
+                    md:grid-cols-4
+                    lg:grid-cols-5
+                    gap-4
+                ">
+            </div>
 
-            paginationContainer.appendChild(pageText);
+        </section>
 
-            if (currentPage < lastPage) {
+        <!-- Fixed Pagination -->
+        <div id="paginationWrapper"
+            class="hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl">
 
-                const nextButton = document.createElement('button');
+            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
 
-                nextButton.innerText = 'Next';
+                <div id="paginationInfo" class="text-sm text-slate-400"></div>
 
-                nextButton.className =
-                    'bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg';
+                <div id="pagination" class="flex items-center gap-2"></div>
 
-                nextButton.onclick = () => fetchContents(currentPage + 1);
+            </div>
 
-                paginationContainer.appendChild(nextButton);
-            }
-        }
+        </div>
 
-        function debounceSearch() {
-
-            clearTimeout(debounceTimer);
-
-            debounceTimer = setTimeout(() => {
-                fetchContents(1);
-            }, 400);
-        }
-
-        searchInput.addEventListener('input', debounceSearch);
-
-        contentType.addEventListener('change', () => {
-            fetchContents(1);
-        });
-
-        minRating.addEventListener('change', () => {
-            fetchContents(1);
-        });
-
-        fetchContents();
-
-    </script>
+    </main>
 
 </body>
+
 </html>

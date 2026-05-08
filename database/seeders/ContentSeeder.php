@@ -44,6 +44,15 @@ class ContentSeeder extends Seeder
 
         $tenants = Tenant::all();
 
+        $posters = collect(glob(public_path('posters/*')))
+        ->map(fn ($path) => str_replace(
+            public_path(),
+            '',
+            $path
+        ))
+        ->values()
+        ->toArray();
+
         foreach ($tenants as $tenant) {
 
             $batch = [];
@@ -90,7 +99,7 @@ class ContentSeeder extends Seeder
 
                     'genres' => json_encode($selectedGenres),
 
-                    'poster_url' => $faker->imageUrl(),
+                    'poster_url' => $posters[array_rand($posters)],
 
                     'imdb_rating' => rand(50, 95) / 10,
 

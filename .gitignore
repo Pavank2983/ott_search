@@ -32,6 +32,7 @@ _ide_helper.php
 /public/build
 /public/hot
 /public/storage
+/public/posters*
 /public/fonts-manifest.dev.json
 
 # Laravel Storage

@@ -14,7 +14,7 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => ['required', 'string', 'min:2'],
+            'q' => ['nullable', 'string', 'min:2'],
             'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'content_type' => ['nullable', 'string'],
