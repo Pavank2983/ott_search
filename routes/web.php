@@ -1,10 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\SearchController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/search-ui');
 });
 
-Route::get('/search', [SearchController::class, 'index']);
+Route::view(
+    '/search-ui',
+    'search.index'
+);

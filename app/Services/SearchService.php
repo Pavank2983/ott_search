@@ -4,18 +4,22 @@ namespace App\Services;
 
 use App\Models\Content;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class SearchService
 {
+    public function __construct(
+        private ElasticSearchService $elasticSearchService
+    ) {}
+
     /**
-     * Search OTT contents.
+     * Search OTT contents using Elasticsearch.
      */
     public function search(
         string $query,
         int $tenantId,
         int $perPage = 20
-    ) {
+    ): array {
+
         $page = request()->integer('page', 1);
 
         $cacheKey = sprintf(
@@ -37,10 +41,33 @@ class SearchService
             function () use (
                 $query,
                 $tenantId,
-                $perPage
+                $perPage,
+                $page
             ) {
 
-                $results = Content::query()
+                $response = $this->elasticSearchService->search(
+                    query: $query,
+                    tenantId: $tenantId,
+                    perPage: $perPage
+                );
+
+                $hits = $response['hits']['hits'] ?? [];
+
+                $contentIds = collect($hits)
+                    ->pluck('_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->toArray();
+
+                if (empty($contentIds)) {
+                    return [
+                        'data' => [],
+                        'total' => 0,
+                        'per_page' => $perPage,
+                        'current_page' => $page,
+                    ];
+                }
+
+                $contents = Content::query()
 
                     ->select([
                         'id',
@@ -54,62 +81,38 @@ class SearchService
                     ])
 
                     ->with([
-                        'actors:id,name'
+                        'actors:id,name',
                     ])
 
-                    ->when(
-                        request('content_type'),
-                        fn ($q) => $q->where(
-                            'content_type',
-                            request('content_type')
-                        )
-                    )
+                    ->whereIn('id', $contentIds)
 
-                    ->when(
-                        request('release_year'),
-                        fn ($q) => $q->where(
-                            'release_year',
-                            request('release_year')
-                        )
-                    )
+                    ->get()
 
-                    ->when(
-                        request('language'),
-                        fn ($q) => $q->where(
-                            'language',
-                            request('language')
-                        )
-                    )
+                    ->sortBy(function ($content) use ($contentIds) {
+                        return array_search(
+                            $content->id,
+                            $contentIds
+                        );
+                    })
 
-                    ->when(
-                        request('min_rating'),
-                        fn ($q) => $q->where(
-                            'imdb_rating',
-                            '>=',
-                            request('min_rating')
-                        )
-                    )
+                    ->values()
 
-                    ->where('tenant_id', $tenantId)
+                    ->toArray();
 
-                    ->where('status', 'published')
+                return [
+                    'data' => $contents,
 
-                    ->whereRaw(
-                        'search_vector @@ plainto_tsquery(\'english\', ?)',
-                        [$query]
-                    )
+                    'total' => $response['hits']['total']['value'] ?? 0,
 
-                    ->orderByRaw(
-                        'ts_rank(search_vector, plainto_tsquery(\'english\', ?)) DESC',
-                        [$query]
-                    )
+                    'per_page' => $perPage,
 
-                    ->paginate($perPage);
+                    'current_page' => $page,
 
-                return json_decode(
-                    json_encode($results),
-                    true
-                );
+                    'last_page' => (int) ceil(
+                        ($response['hits']['total']['value'] ?? 0)
+                        / $perPage
+                    ),
+                ];
             }
         );
     }
